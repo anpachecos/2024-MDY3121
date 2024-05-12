@@ -1,25 +1,37 @@
 DECLARE
-    V_VENDEDOR  VENDEDOR%ROWTYPE;
-    TYPE tipo_varray_vendedor IS VARRAY(10) OF VENDEDOR.ID_VENDEDOR%TYPE;
-    varray_vendedor tipo_varray_vendedor := tipo_varray_vendedor();
+        v_id        VENDEDOR.ID_VENDEDOR%TYPE;
+        v_nombres   VENDEDOR.NOMBRES%TYPE;
+        v_apellidos VENDEDOR.APELLIDOS%TYPE;
+        v_sueldo    VENDEDOR.SUELDO%TYPE;
+        v_contador  NUMBER(2):=0;
+
+    CURSOR cur_vendedor IS (
+        SELECT 
+            id_vendedor,
+            nombres, 
+            apellidos,
+            sueldo
+        FROM vendedor 
+            WHERE sueldo <= 354000);
 BEGIN
-    FOR v_vendedor_rec IN (SELECT * FROM vendedor) LOOP
-        IF v_vendedor_rec.SUELDO <= 354000 THEN 
-            varray_vendedor.EXTEND;
-            varray_vendedor(varray_vendedor.LAST) := v_vendedor_rec.ID_VENDEDOR;
-        END IF;
-    END LOOP;
+    OPEN cur_vendedor;
     
-    -- Imprimir el contenido de varray_vendedor con el formato solicitado
-    FOR i IN 1..varray_vendedor.COUNT LOOP
-        SELECT *
-        INTO V_VENDEDOR
-        FROM vendedor
-        WHERE ID_VENDEDOR = varray_vendedor(i);
-        
-        DBMS_OUTPUT.PUT_LINE('[' || i || '] Empleado N°' || V_VENDEDOR.ID_VENDEDOR ||
-            ' - ' || V_VENDEDOR.NOMBRES || ' ' || V_VENDEDOR.APELLIDOS || ' tiene un sueldo de ' ||
-            TO_CHAR(V_VENDEDOR.SUELDO, '999G999G999'));
-    END LOOP;
+    DBMS_OUTPUT.PUT_LINE('--------------------------------------------------');
+    DBMS_OUTPUT.PUT_LINE('INFORME DE EMPLEADOS');
+    DBMS_OUTPUT.PUT_LINE('--------------------------------------------------');
+    
+    
+        LOOP
+            v_contador := v_contador + 1;
+            FETCH cur_vendedor INTO
+            v_id,
+            v_nombres,
+            v_apellidos,
+            v_sueldo;
+            EXIT WHEN cur_vendedor%NOTFOUND;
+            DBMS_OUTPUT.PUT_LINE( '['|| v_contador || '] ' || 'Empleado NÂ° ' || v_id
+            || ' - ' || v_nombres || ' ' || v_apellidos || 
+            ' tiene un sueldo de ' || TO_CHAR(v_sueldo, '$999g999g999'));
+        END LOOP;
+    CLOSE cur_vendedor;
 END;
-/
